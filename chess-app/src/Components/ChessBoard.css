@@ -1,0 +1,30 @@
+.board {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+button {
+    --piece-dimension: 11vh;
+    height: var(--piece-dimension);
+    width: var(--piece-dimension);
+    border-radius: 0;
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+img {
+    height: 95%;
+    width: 95%;
+}
+
