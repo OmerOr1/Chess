@@ -1,3 +1,9 @@
+html, body {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+}
+
 .board {
     position: absolute;
     left: 50%;
@@ -15,7 +21,7 @@ button {
     height: var(--piece-dimension);
     width: var(--piece-dimension);
     border-radius: 0;
-    border: 1px solid black;
+    border: 0.2vh solid black;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -24,7 +30,6 @@ button {
 }
 
 img {
-    height: 95%;
-    width: 95%;
+    height: 92%;
+    width: 92%;
 }
-
