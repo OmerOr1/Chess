@@ -1,13 +1,24 @@
 import React from "react";
 import ChessPiece from "./ChessPiece.tsx";
-import { Square } from "../types.ts";
+import { Piece } from "../types.ts";
 import "./ChessSquare.css"
 
-const ChessSquare: React.FC<Square> = ({ piece, row, col, notation, onClick }) => {
+interface ChessSquareProps {
+    key: string;
+    piece: Piece | null;
+    row: number;
+    col: number;
+    notation: string | null;
+    onClick: (row: number, col: number) => void;
+}
+
+const ChessSquare: React.FC<ChessSquareProps> = ({ key, piece, row, col, notation, onClick }) => {
     const isDarkSquare = (row + col) % 2 === 1;
 
     return (
         <button
+            id={`square-${key}`}
+            data-key={key}
             className={`square ${isDarkSquare ? "dark" : "light"} ${notation || ""}`.trim()}
             onClick={() => onClick(row, col)}
         >

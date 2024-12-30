@@ -1,9 +1,14 @@
 import React from "react";
 import ChessSquare from "./ChessSquare.tsx";
-import { BoardProps } from "../types.ts";
+import { Board } from "../types.ts";
 import "./ChessBoard.css"
 
-const ChessBoard: React.FC<BoardProps> = ({ board, onSquareClick }) => {
+export interface ChessBoardProps {
+    board: Board;
+    onSquareClick: (row: number, col: number) => void;
+}
+
+const ChessBoard: React.FC<ChessBoardProps> = ({ board, onSquareClick }) => {
     function getNotation(row: number, col: number): string | null {
         const classes = [];
     
