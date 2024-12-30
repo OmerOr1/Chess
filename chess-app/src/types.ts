@@ -7,3 +7,8 @@ export type Piece = {
 }
 
 export type Board = (Piece | null)[][];
+
+export type Location = {
+    row: number; 
+    col: number;
+}

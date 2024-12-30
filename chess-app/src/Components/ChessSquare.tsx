@@ -1,26 +1,32 @@
 import React from "react";
 import ChessPiece from "./ChessPiece.tsx";
-import { Piece } from "../types.ts";
+import { Piece, Location } from "../types.ts";
 import "./ChessSquare.css"
 
 interface ChessSquareProps {
-    key: string;
     piece: Piece | null;
-    row: number;
-    col: number;
-    notation: string | null;
-    onClick: (row: number, col: number) => void;
+    location: Location
+    onClick: (location: Location) => void;
 }
 
-const ChessSquare: React.FC<ChessSquareProps> = ({ key, piece, row, col, notation, onClick }) => {
+const ChessSquare: React.FC<ChessSquareProps> = ({ piece, location, onClick }) => {
+    const {row, col} = location;
     const isDarkSquare = (row + col) % 2 === 1;
+
+    let classes = `square ${isDarkSquare ? "dark" : "light"}`;
+
+    if (col === 0) {
+        classes += ` number-${8 - row}`;
+    }
+
+    if (row === 7) {
+        classes += ` letter-${String.fromCharCode(97 + col)}`;
+    }
 
     return (
         <button
-            id={`square-${key}`}
-            data-key={key}
-            className={`square ${isDarkSquare ? "dark" : "light"} ${notation || ""}`.trim()}
-            onClick={() => onClick(row, col)}
+            className={classes}
+            onClick={() => onClick(location)}
         >
             {piece && <ChessPiece piece={piece} />}
         </button>
