@@ -6,7 +6,8 @@ export type Piece = {
     color: PieceColor;
 }
 
-export type Board = (Piece | null)[][];
+export type BoardSquare = Piece | null;
+export type Board = BoardSquare[][];
 
 export type Location = {
     row: number; 

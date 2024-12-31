@@ -1,10 +1,10 @@
 import React from "react";
 import ChessPiece from "./ChessPiece.tsx";
-import { Piece, Location } from "../types.ts";
+import { BoardSquare, Location } from "../types.ts";
 import "./ChessSquare.css"
 
 interface ChessSquareProps {
-    piece: Piece | null;
+    piece: BoardSquare;
     location: Location
     onClick: (location: Location) => void;
 }
