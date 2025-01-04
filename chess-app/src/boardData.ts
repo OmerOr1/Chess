@@ -1,53 +1,59 @@
-import { Board } from './types';
+import { Bishop } from './Pieces/Bishop';
+import { King } from './Pieces/King';
+import { Knight } from './Pieces/Knight';
+import { Pawn } from './Pieces/Pawn';
+import { Piece } from './Pieces/Piece';
+import { Queen } from './Pieces/Queen';
+import { Rook } from './Pieces/Rook';
 
-export const initialBoard: Board = [
-    // Row 1: Black pieces
+export const initialBoard: (Piece | null)[][] = [
+    // Row 8 (Black major pieces)
     [
-        { type: "Rook", color: "Black" },
-        { type: "Knight", color: "Black" },
-        { type: "Bishop", color: "Black" },
-        { type: "Queen", color: "Black" },
-        { type: "King", color: "Black" },
-        { type: "Bishop", color: "Black" },
-        { type: "Knight", color: "Black" },
-        { type: "Rook", color: "Black" }
+      new Rook("Black"),
+      new Knight("Black"),
+      new Bishop("Black"),
+      new Queen("Black"),
+      new King("Black"),
+      new Bishop("Black"),
+      new Knight("Black"),
+      new Rook("Black"),
     ],
-    // Row 2: Black pawns
+    // Row 7 (Black pawns)
     [
-        { type: "Pawn", color: "Black" },
-        { type: "Pawn", color: "Black" },
-        { type: "Pawn", color: "Black" },
-        { type: "Pawn", color: "Black" },
-        { type: "Pawn", color: "Black" },
-        { type: "Pawn", color: "Black" },
-        { type: "Pawn", color: "Black" },
-        { type: "Pawn", color: "Black" }
+      new Pawn("Black"),
+      new Pawn("Black"),
+      new Pawn("Black"),
+      new Pawn("Black"),
+      new Pawn("Black"),
+      new Pawn("Black"),
+      new Pawn("Black"),
+      new Pawn("Black"),
     ],
-    // Rows 3-6: Empty rows
+    // Rows 6 to 3 (Empty squares)
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
-    // Row 7: White pawns
+    // Row 2 (White pawns)
     [
-        { type: "Pawn", color: "White" },
-        { type: "Pawn", color: "White" },
-        { type: "Pawn", color: "White" },
-        { type: "Pawn", color: "White" },
-        { type: "Pawn", color: "White" },
-        { type: "Pawn", color: "White" },
-        { type: "Pawn", color: "White" },
-        { type: "Pawn", color: "White" }
+      new Pawn("White"),
+      new Pawn("White"),
+      new Pawn("White"),
+      new Pawn("White"),
+      new Pawn("White"),
+      new Pawn("White"),
+      new Pawn("White"),
+      new Pawn("White"),
     ],
-    // Row 8: White pieces
+    // Row 1 (White major pieces)
     [
-        { type: "Rook", color: "White" },
-        { type: "Knight", color: "White" },
-        { type: "Bishop", color: "White" },
-        { type: "Queen", color: "White" },
-        { type: "King", color: "White" },
-        { type: "Bishop", color: "White" },
-        { type: "Knight", color: "White" },
-        { type: "Rook", color: "White" }
+      new Rook("White"),
+      new Knight("White"),
+      new Bishop("White"),
+      new Queen("White"),
+      new King("White"),
+      new Bishop("White"),
+      new Knight("White"),
+      new Rook("White"),
     ],
-];
+  ];
