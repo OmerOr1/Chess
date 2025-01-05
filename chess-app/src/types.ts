@@ -1,9 +1,23 @@
+import { Piece } from "./Pieces";
+
 export type PieceType = "Pawn" | "Knight" | "Bishop" | "Rook" | "Queen" | "King";
+
 export type PieceColor = "White" | "Black";
 
-export interface Piece {
-    type: PieceType;
-    color: PieceColor;
+export type Location = {
+    row: number; 
+    col: number;
 }
 
-export type Board = (Piece | null)[][];
+export  type SquareData = {
+    location: Location;
+    validMoves: Location[];
+}
+
+export type MoveDetails = {
+    from: Location;
+    to: Location;
+    movingPiece: Piece | null;
+    capturedPiece: Piece | null;
+    moveBefore?: MoveDetails | null;
+};
