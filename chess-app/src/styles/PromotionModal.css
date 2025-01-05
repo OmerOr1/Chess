@@ -1,0 +1,29 @@
+.promotion-modal {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 0.1vmin solid black;
+    z-index: 1000;
+    position: absolute;
+    box-sizing: border-box;
+}
+
+.promotion-option {
+    width: 9.8vmin;
+    height: 10vmin;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.promotion-option:hover {
+    background-color: #f0f0f0;
+}
+
+.promotion-option img {
+    width: 90%;
+    aspect-ratio: 1;
+}
