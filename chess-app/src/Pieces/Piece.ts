@@ -1,9 +1,9 @@
-import { Location, PieceType, PieceColor } from "../types"; // Import the types
+import { Location, PieceType, PieceColor } from "../types";
 
 export abstract class Piece {
-  type: PieceType;  // Use PieceType instead of string
-  color: PieceColor;  // Use PieceColor instead of string
-  moved: boolean;  // Indicates if the piece has moved (important for pawn, castling, etc.)
+  type: PieceType;
+  color: PieceColor;
+  moved: boolean;
 
   constructor(type: PieceType, color: PieceColor, moved: boolean = false) {
     this.type = type;

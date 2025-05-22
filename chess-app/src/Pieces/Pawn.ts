@@ -7,14 +7,14 @@ export class Pawn extends Piece {
   }
 
   isValidMove(board: (Piece | null)[][], start: Location, target: Location): boolean {
-    const direction = this.color === "White" ? -1 : 1; // White pawns move up (-1), Black pawns move down (+1)
+    const direction = this.color === "White" ? -1 : 1;
     const targetPiece = board[target.row][target.col];
 
     // Forward movement (1 square)
     if (
       target.row === start.row + direction &&
       target.col === start.col &&
-      targetPiece === null // Target square must be empty
+      targetPiece === null
     ) {
       return true;
     }
@@ -24,7 +24,7 @@ export class Pawn extends Piece {
       !this.moved &&
       target.row === start.row + 2 * direction &&
       target.col === start.col &&
-      board[start.row + direction][start.col] === null && // Square in between must be empty
+      board[start.row + direction][start.col] === null &&
       targetPiece === null
     ) {
       return true;
@@ -33,21 +33,20 @@ export class Pawn extends Piece {
     // Diagonal capture
     if (
       target.row === start.row + direction &&
-      (target.col === start.col - 1 || target.col === start.col + 1) && // One square diagonally
-      targetPiece !== null && // There must be a piece to capture
-      targetPiece.color !== this.color // It must be an opponent's piece
+      (target.col === start.col - 1 || target.col === start.col + 1) &&
+      targetPiece !== null &&
+      targetPiece.color !== this.color
     ) {
       return true;
     }
 
-    // If none of the above conditions are met, it's an invalid move
     return false;
   }
 
   getValidMoves(board: (Piece | null)[][], start: Location): Location[] {
     const validMoves: Location[] = [];
-    const direction = this.color === "White" ? -1 : 1; // White pawns move up, Black pawns move down
-    const startRow = this.color === "White" ? 6 : 1; // Starting row for pawns
+    const direction = this.color === "White" ? -1 : 1;
+    const startRow = this.color === "White" ? 6 : 1;
 
     // Forward 1 square
     const forwardOneRow = start.row + direction;
