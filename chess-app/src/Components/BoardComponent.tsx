@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Piece, Rook, Queen, Bishop, Knight, Pawn } from "../Pieces";
+import { Piece, Rook, Queen, Bishop, Knight, Pawn, King } from "../Pieces";
+import {filterOutMoves, isKingInCheck, opponentHasMoves, findKingPosition, getCurrentColor, getOppositeColor } from "../utils/boardHelpers";
 import { Location } from "../types";
 import { initialBoard } from "../boardData";
 import SquareComponent from "./SquareComponent";
@@ -12,7 +13,7 @@ type MoveDetails = {
   movingPiece: Piece | null;
   capturedPiece: Piece | null;
   moveBefore?: MoveDetails | null;
-};
+}
 
 type SquareData = {
   location: Location;
@@ -24,28 +25,36 @@ const BoardComponent: React.FC = () => {
   const [isWhiteTurn, setIsWhiteTurn] = useState(true);
   const [lastMove, setLastMove] = useState<MoveDetails | null>(null);
   const [promotionSquare, setPromotionSquare] = useState<Location | null>(null);
-  const [selectedSquare, setSelectedSquare] = useState<SquareData | null>(null)
+  const [selectedSquare, setSelectedSquare] = useState<SquareData | null>(null);
+  const [isCheck, setIsCheck] = useState(false);
 
   const toggleTurn = () => {
     setIsWhiteTurn((prev) => !prev);
-  };
+  }
 
   const handleSquareClick = (targetRow: number, targetCol: number) => {
     const targetPiece = board[targetRow][targetCol];
-
+    
+    // promotion modal is currently showing
     if (promotionSquare) {
-      if (targetPiece && targetPiece.color === (isWhiteTurn ? "White" : "Black")) {
+      // cancled promotion by clicking on another piece
+      if (targetPiece && targetPiece.color === (getCurrentColor(isWhiteTurn))) {
+        const kingColor = getCurrentColor(isWhiteTurn);
+        const kingPos = findKingPosition(board, kingColor);
+        const optionalMoves = targetPiece.getValidMoves(board, {row: targetRow, col: targetCol});
+        const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos);
+
         setSelectedSquare({
           location: { row: targetRow, col: targetCol },
-          validMoves: targetPiece.getValidMoves(board, { row: targetRow, col: targetCol })
+          validMoves: validMoves,
         });
       }
-
+      // replicating last move
       const newBoard = [...board];
       const { from, to, movingPiece, capturedPiece } = lastMove!;
 
-      newBoard[to.row][to.col] = capturedPiece;
       newBoard[from.row][from.col] = movingPiece;
+      newBoard[to.row][to.col] = capturedPiece;
 
       setBoard(newBoard);
       setPromotionSquare(null);
@@ -55,39 +64,48 @@ const BoardComponent: React.FC = () => {
         movingPiece: null,
         capturedPiece: null,
       });
-      return
+      return;
     }
 
+    // selected square is clicked again
     if (selectedSquare && selectedSquare.location.row === targetRow && selectedSquare.location.col === targetCol) {
       setSelectedSquare(null);
       return;
     }
 
-    if (targetPiece && targetPiece.color === (isWhiteTurn ? "White" : "Black")) {
-      setSelectedSquare({ 
-        location: { row: targetRow, col: targetCol }, 
-        validMoves: targetPiece.getValidMoves(board, { row: targetRow, col: targetCol }) 
+    // clicked on a different piece of the same color
+    if (targetPiece && targetPiece.color === (getCurrentColor(isWhiteTurn))) {
+      const kingColor = getCurrentColor(isWhiteTurn);
+      const kingPos = findKingPosition(board, kingColor);
+      const optionalMoves = targetPiece.getValidMoves(board, {row: targetRow, col: targetCol});
+      const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos);
+
+      setSelectedSquare({
+        location: { row: targetRow, col: targetCol },
+        validMoves: validMoves,
       });
       return;
-    } 
-    
-    if (!selectedSquare) {
+    }
+
+    const isMoveValid = selectedSquare?.validMoves.some(
+      (move) => move.row === targetRow && move.col === targetCol
+    );
+    if (!isMoveValid) {
+      setSelectedSquare(null);
       return;
     }
 
-    const isMoveValid = selectedSquare.validMoves.some((move) => move.row === targetRow && move.col === targetCol);
-    if (!isMoveValid) {
-      setSelectedSquare(null);
-      return
+    const movingPiece = board[selectedSquare!.location.row][selectedSquare!.location.col];
+    const newBoard = [...board];
+    newBoard[selectedSquare!.location.row][selectedSquare!.location.col] = null;
+    newBoard[targetRow][targetCol] = movingPiece;
+    
+    if (movingPiece instanceof Rook || movingPiece instanceof King || movingPiece instanceof Pawn) {
+      movingPiece.moved = true;
     }
 
-    const movingPiece = board[selectedSquare.location.row][selectedSquare.location.col];
-    const newBoard = [...board];
-    newBoard[selectedSquare.location.row][selectedSquare.location.col] = null;
-    newBoard[targetRow][targetCol] = movingPiece;
-
     setLastMove({
-      from: selectedSquare.location,
+      from: selectedSquare!.location,
       to: { row: targetRow, col: targetCol },
       movingPiece: movingPiece,
       capturedPiece: targetPiece,
@@ -96,16 +114,35 @@ const BoardComponent: React.FC = () => {
 
     if (movingPiece instanceof Pawn && (targetRow === 0 || targetRow === 7)) {
       setPromotionSquare({ row: targetRow, col: targetCol });
-    } else {
+    } 
+    else {
+      const opponentColor = getOppositeColor(isWhiteTurn);
+      const opponentKingPos = findKingPosition(newBoard, opponentColor)
+      const check = isKingInCheck(newBoard, opponentKingPos, opponentColor)
+      
+      if(check){
+        setIsCheck(true);
+        console.log("check");
+      }
+      else if(!check && isCheck){
+        setIsCheck(false);
+      }
+      if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor)){
+        if(check){
+          console.log(`Checkmate! ${getCurrentColor(isWhiteTurn)} won.`);
+        }
+        else {
+          console.log(`Stalemate! ${opponentColor} has no legal moves.`);
+        }
+      }
       setBoard(newBoard);
       toggleTurn();
     }
-
     setSelectedSquare(null);
-  };
+  }
 
   const handlePromotion = (pieceType: string) => {
-    const color = isWhiteTurn ? "White" : "Black";
+    const color = getCurrentColor(isWhiteTurn);
     const newPiece =
       pieceType === "Queen"
         ? new Queen(color, true)
@@ -119,10 +156,29 @@ const BoardComponent: React.FC = () => {
     const { row, col } = promotionSquare!;
     newBoard[row][col] = newPiece;
 
+    const opponentColor = isWhiteTurn ? "Black" : "White"; 
+    const opponentKingPos = findKingPosition(newBoard, opponentColor)
+    const check = isKingInCheck(newBoard, opponentKingPos, opponentColor)
+    if(check){
+      setIsCheck(true);
+      console.log("check");
+    }
+    else if(!check && isCheck){
+      setIsCheck(false);
+    }
+    if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor)){
+      if(check){
+        console.log(`Checkmate! ${isWhiteTurn ? "White" : "Black"} won.`);
+      }
+      else {
+        console.log(`Stalemate! ${opponentColor} has no legal moves.`);
+      }
+    }
+
     setBoard(newBoard);
     setPromotionSquare(null);
     toggleTurn();
-  };
+  }
 
   return (
     <div className="board">
@@ -135,8 +191,8 @@ const BoardComponent: React.FC = () => {
       )}
       {board.map((row, rowIndex) =>
         row.map((piece, colIndex) => {
-          const isSelected = 
-            selectedSquare?.location?.row === rowIndex &&                             
+          const isSelected =
+            selectedSquare?.location?.row === rowIndex &&
             selectedSquare?.location?.col === colIndex;
 
           const isLastMove =
@@ -159,6 +215,6 @@ const BoardComponent: React.FC = () => {
       )}
     </div>
   );
-};
+}
 
 export default BoardComponent;
