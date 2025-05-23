@@ -102,11 +102,19 @@ function getOppositeColor(
   return isWhiteTurn ? "Black": "White";
 }
 
+function isSameLocation(
+  a: Location,
+  b: Location
+): boolean {
+  return a.row === b.row && a.col === b.col;
+}
+
 export {
     filterOutMoves, 
     isKingInCheck, 
     opponentHasMoves, 
     findKingPosition, 
     getCurrentColor, 
-    getOppositeColor
+    getOppositeColor,
+    isSameLocation
 };

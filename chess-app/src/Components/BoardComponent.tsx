@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Piece, Rook, Queen, Bishop, Knight, Pawn, King } from "../Pieces";
-import {filterOutMoves, isKingInCheck, opponentHasMoves, findKingPosition, getCurrentColor, getOppositeColor } from "../utils/boardHelpers";
+import {filterOutMoves, isKingInCheck, opponentHasMoves, findKingPosition, getCurrentColor, getOppositeColor, isSameLocation } from "../utils/boardHelpers";
 import { Location } from "../types";
 import { initialBoard } from "../boardData";
 import SquareComponent from "./SquareComponent";
@@ -209,6 +209,8 @@ const BoardComponent: React.FC = () => {
               isSelected={isSelected}
               isLastMove={isLastMove}
               validMoves={selectedSquare?.validMoves || []}
+              isKing={isSameLocation(findKingPosition(board, getCurrentColor(isWhiteTurn)), { row: rowIndex, col: colIndex })}
+              isCheck={isCheck}
             />
           );
         })
