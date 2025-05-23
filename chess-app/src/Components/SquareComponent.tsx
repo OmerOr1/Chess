@@ -1,6 +1,5 @@
 import React from "react";
 import { Piece } from "../Pieces";
-import { Location } from "../types";
 import PieceComponent from "./PieceComponent"; 
 import "../styles/Square.css";
 
