@@ -1,10 +1,4 @@
-import { Bishop } from './Pieces/Bishop';
-import { King } from './Pieces/King';
-import { Knight } from './Pieces/Knight';
-import { Pawn } from './Pieces/Pawn';
-import { Piece } from './Pieces/Piece';
-import { Queen } from './Pieces/Queen';
-import { Rook } from './Pieces/Rook';
+import { Piece, Pawn, Bishop, Knight, Rook, Queen, King } from "./Pieces";
 
 export const initialBoard: (Piece | null)[][] = [
     // Row 8 (Black major pieces)
