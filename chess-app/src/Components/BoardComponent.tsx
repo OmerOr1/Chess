@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Piece, Rook, Queen, Bishop, Knight, Pawn, King } from "../Pieces";
 import {filterOutMoves, isKingInCheck, opponentHasMoves, findKingPosition, getCurrentColor, getOppositeColor, isSameLocation } from "../utils/boardHelpers";
 import { Location } from "../types";
-import { initialBoard } from "../boardData";
+import { getInitialBoard } from "../boardData";
 import SquareComponent from "./SquareComponent";
 import PromotionModal from "./PromotionModal";
+import GameOverModal from "./GameOverModal";
 import "../styles/Board.css";
 
 type MoveDetails = {
@@ -20,15 +21,20 @@ type SquareData = {
   validMoves: Location[];
 }
 
+type GameOverDetails = {
+  winner: "White" | "Black" | "Draw";
+  method: "Checkmate" | "Time" | "Repetition" | "Stalemate" | "Insufficient Material";
+}
+
 const BoardComponent: React.FC = () => {
-  const [board, setBoard] = useState<(Piece | null)[][]>(initialBoard);
+  const [board, setBoard] = useState<(Piece | null)[][]>(getInitialBoard());
   const [isWhiteTurn, setIsWhiteTurn] = useState(true);
   const [lastMove, setLastMove] = useState<MoveDetails | null>(null);
   const [promotionSquare, setPromotionSquare] = useState<Location | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<SquareData | null>(null);
   const [isCheck, setIsCheck] = useState(false);
   const [enPassantTarget, setEnPassantTarget] = useState<Location | null>(null);
-
+  const [gameOver, setGameOver] = useState<GameOverDetails | null>(null);
   const toggleTurn = () => {
     setIsWhiteTurn((prev) => !prev);
   }
@@ -179,19 +185,23 @@ const BoardComponent: React.FC = () => {
       
       if(check){
         setIsCheck(true);
-        console.log("check");
       }
       else if(!check && isCheck){
         setIsCheck(false);
       }
-      if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)){
-        if(check){
-          console.log(`Checkmate! ${getCurrentColor(isWhiteTurn)} won.`);
-        }
-        else {
-          console.log(`Stalemate! ${opponentColor} has no legal moves.`);
-        }
+      if (!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)) {
+      if (check) {
+        setGameOver({
+          winner: isWhiteTurn ? "White" : "Black",
+          method: "Checkmate",
+        });
+      } else {
+        setGameOver({
+          winner: "Draw",
+          method: "Stalemate",
+        });
       }
+    }
       setBoard(newBoard);
       toggleTurn();
     }
@@ -218,17 +228,21 @@ const BoardComponent: React.FC = () => {
     const check = isKingInCheck(newBoard, opponentKingPos, opponentColor)
     if(check){
       setIsCheck(true);
-      console.log("check");
     }
     else if(!check && isCheck){
       setIsCheck(false);
     }
-    if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)){
-      if(check){
-        console.log(`Checkmate! ${isWhiteTurn ? "White" : "Black"} won.`);
-      }
-      else {
-        console.log(`Stalemate! ${opponentColor} has no legal moves.`);
+    if (!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)) {
+      if (check) {
+        setGameOver({
+          winner: isWhiteTurn ? "White" : "Black",
+          method: "Checkmate",
+        });
+      } else {
+        setGameOver({
+          winner: "Draw",
+          method: "Stalemate",
+        });
       }
     }
 
@@ -237,42 +251,61 @@ const BoardComponent: React.FC = () => {
     toggleTurn();
   }
 
+  function handleNewGame(){
+    setBoard(getInitialBoard());
+    setIsWhiteTurn(true);
+    setLastMove(null);
+    setPromotionSquare(null);
+    setSelectedSquare(null);
+    setIsCheck(false);
+    setEnPassantTarget(null);
+    setGameOver(null);
+  }
+
   return (
-    <div className="board">
-      {promotionSquare && (
-        <PromotionModal
-          onSelect={(pieceType) => handlePromotion(pieceType)}
-          isWhite={isWhiteTurn}
-          location={{ row: promotionSquare.row, col: promotionSquare.col }}
-        />
-      )}
-      {board.map((row, rowIndex) =>
-        row.map((piece, colIndex) => {
-          const isSelected =
-            selectedSquare?.location?.row === rowIndex &&
-            selectedSquare?.location?.col === colIndex;
+    <>
+      <div className="board">
+        {promotionSquare && (
+          <PromotionModal
+            onSelect={(pieceType) => handlePromotion(pieceType)}
+            isWhite={isWhiteTurn}
+            location={{ row: promotionSquare.row, col: promotionSquare.col }}
+          />
+        )}
+        {board.map((row, rowIndex) =>
+          row.map((piece, colIndex) => {
+            const isSelected =
+              selectedSquare?.location?.row === rowIndex &&
+              selectedSquare?.location?.col === colIndex;
 
-          const isLastMove =
-            (lastMove?.from.row === rowIndex && lastMove?.from.col === colIndex) ||
-            (lastMove?.to.row === rowIndex && lastMove?.to.col === colIndex);
+            const isLastMove =
+              (lastMove?.from.row === rowIndex && lastMove?.from.col === colIndex) ||
+              (lastMove?.to.row === rowIndex && lastMove?.to.col === colIndex);
 
-          return (
-            <SquareComponent
-              key={`${rowIndex}-${colIndex}`}
-              piece={piece}
-              squareColor={(rowIndex + colIndex) % 2 === 0 ? "Light" : "Dark"}
-              location={{ row: rowIndex, col: colIndex }}
-              onClick={() => handleSquareClick(rowIndex, colIndex)}
-              isSelected={isSelected}
-              isLastMove={isLastMove}
-              validMoves={selectedSquare?.validMoves || []}
-              isKing={isSameLocation(findKingPosition(board, getCurrentColor(isWhiteTurn)), { row: rowIndex, col: colIndex })}
-              isCheck={isCheck}
-            />
-          );
-        })
-      )}
-    </div>
+            return (
+              <SquareComponent
+                key={`${rowIndex}-${colIndex}`}
+                piece={piece}
+                squareColor={(rowIndex + colIndex) % 2 === 0 ? "Light" : "Dark"}
+                location={{ row: rowIndex, col: colIndex }}
+                onClick={() => handleSquareClick(rowIndex, colIndex)}
+                isSelected={isSelected}
+                isLastMove={isLastMove}
+                validMoves={selectedSquare?.validMoves || []}
+                isKing={isSameLocation(findKingPosition(board, getCurrentColor(isWhiteTurn)), { row: rowIndex, col: colIndex })}
+                isCheck={isCheck}
+              />
+            );
+          })
+        )}
+      </div> 
+      <GameOverModal
+        winner={gameOver?.winner || null}
+        method={gameOver?.method || null}
+        onNewGame={handleNewGame}
+        isVisible={!!gameOver}
+      />
+    </>
   );
 }
 

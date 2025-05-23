@@ -1,0 +1,44 @@
+.game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.game-over-modal {
+  position: fixed;
+  height: 30vmin;
+  aspect-ratio: 1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgb(54, 69, 79);
+  color: white;
+  padding: 5vmin;
+  box-shadow: 0 1vmin 2vmin rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  text-align: center;
+}
+
+.game-over-header {
+  margin-top: 0;
+  font-size: 4vmin;
+}
+
+.game-over-message {
+  font-size: 3.5vmin;
+  margin: 3.5vmin 0;
+}
+
+.game-over-new-game-button {
+  background-color: rgb(33, 32, 32);
+  color: white;
+  font-size: 2.5vmin;
+  padding: 1.5vmin 3vmin;
+  border: none;
+  border-radius: 1vmin;
+  cursor: pointer;
+}
