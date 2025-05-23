@@ -1,6 +1,6 @@
 import { Piece, Pawn, Bishop, Knight, Rook, Queen, King } from "./Pieces";
 
-export const initialBoard: (Piece | null)[][] = [
+export const getInitialBoard = (): (Piece | null)[][] => [
     // Row 8 (Black major pieces)
     [
       new Rook("Black"),
