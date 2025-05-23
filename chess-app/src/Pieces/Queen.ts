@@ -2,8 +2,8 @@ import { Location } from "../types";
 import { Piece } from "./Piece";
 
 export class Queen extends Piece {
-    constructor(color: "White" | "Black", moved: boolean = false) {
-      super("Queen", color, moved);
+    constructor(color: "White" | "Black", hasMoved: boolean = false) {
+      super("Queen", color, hasMoved);
     }
   
     isValidMove(board: (Piece | null)[][], start: Location, target: Location): boolean {

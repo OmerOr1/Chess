@@ -2,8 +2,8 @@ import { Location } from "../types";
 import { Piece, Rook } from "../Pieces";
 
 export class King extends Piece {
-  constructor(color: "White" | "Black", moved: boolean = false) {
-    super("King", color, moved);
+  constructor(color: "White" | "Black", hasMoved: boolean = false) {
+    super("King", color, hasMoved);
   }
   
   isValidMove(board: (Piece | null)[][], start: Location, target: Location): boolean {
@@ -51,14 +51,14 @@ export class King extends Piece {
   }
 
   // Castling base logic
-  if (!this.moved) {
+  if (!this.hasMoved) {
     const row = start.row;
 
     // King-side castling
     const rightRook = board[row][7];
     if (
       rightRook instanceof Rook &&
-      !rightRook.moved &&
+      !rightRook.hasMoved &&
       !board[row][5] &&
       !board[row][6]
     ) {
@@ -69,7 +69,7 @@ export class King extends Piece {
     const leftRook = board[row][0];
     if (
       leftRook instanceof Rook &&
-      !leftRook.moved &&
+      !leftRook.hasMoved &&
       !board[row][1] &&
       !board[row][2] &&
       !board[row][3]

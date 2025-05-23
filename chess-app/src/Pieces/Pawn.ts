@@ -2,8 +2,8 @@ import { Location } from "../types";
 import { Piece } from "./Piece";
 
 export class Pawn extends Piece {
-  constructor(color: "White" | "Black", moved: boolean = false) {
-    super("Pawn", color, moved);
+  constructor(color: "White" | "Black", hasMoved: boolean = false) {
+    super("Pawn", color, hasMoved);
   }
 
   isValidMove(board: (Piece | null)[][], start: Location, target: Location): boolean {
@@ -21,7 +21,7 @@ export class Pawn extends Piece {
 
     // Forward movement (2 squares) on the first move
     if (
-      !this.moved &&
+      !this.hasMoved &&
       target.row === start.row + 2 * direction &&
       target.col === start.col &&
       board[start.row + direction][start.col] === null &&

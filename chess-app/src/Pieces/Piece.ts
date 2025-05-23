@@ -3,12 +3,12 @@ import { Location, PieceType, PieceColor } from "../types";
 export abstract class Piece {
   type: PieceType;
   color: PieceColor;
-  moved: boolean;
+  hasMoved: boolean;
 
-  constructor(type: PieceType, color: PieceColor, moved: boolean = false) {
+  constructor(type: PieceType, color: PieceColor, hasMoved: boolean = false) {
     this.type = type;
     this.color = color;
-    this.moved = moved;
+    this.hasMoved = hasMoved;
   }
 
   abstract isValidMove(board: (Piece | null)[][], start: Location, target: Location): boolean;
@@ -17,9 +17,5 @@ export abstract class Piece {
 
   protected isInBounds(row: number, col: number): boolean {
     return row >= 0 && row < 8 && col >= 0 && col < 8;
-  }
-
-  protected hasMoved(): boolean {
-    return this.moved;
   }
 }

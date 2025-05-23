@@ -103,7 +103,7 @@ const BoardComponent: React.FC = () => {
     newBoard[targetRow][targetCol] = movingPiece;
 
     if (movingPiece instanceof Rook || movingPiece instanceof King || movingPiece instanceof Pawn) {
-      movingPiece.moved = true;
+      movingPiece.hasMoved = true;
     }
 
     const isCastlingMove = movingPiece instanceof King && Math.abs(targetCol - from.col) === 2;
@@ -119,7 +119,7 @@ const BoardComponent: React.FC = () => {
         board[rookFrom.row][rookFrom.col] = null;
 
         if (board[rookTo.row][rookTo.col]) {
-          board[rookTo.row][rookTo.col]!.moved = true;
+          board[rookTo.row][rookTo.col]!.hasMoved = true;
         }
       } else if (targetCol === 2) {
         // Queen-side castling
@@ -129,7 +129,7 @@ const BoardComponent: React.FC = () => {
         board[rookFrom.row][rookFrom.col] = null;
 
         if (board[rookTo.row][rookTo.col]) {
-          board[rookTo.row][rookTo.col]!.moved = true;
+          board[rookTo.row][rookTo.col]!.hasMoved = true;
         }
       }
     }
