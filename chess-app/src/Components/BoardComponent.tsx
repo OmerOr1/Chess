@@ -95,13 +95,43 @@ const BoardComponent: React.FC = () => {
       return;
     }
 
-    const movingPiece = board[selectedSquare!.location.row][selectedSquare!.location.col];
+    const from = {row: selectedSquare!.location.row, col: selectedSquare!.location.col}
+    const movingPiece = board[from.row][from.col];
     const newBoard = [...board];
-    newBoard[selectedSquare!.location.row][selectedSquare!.location.col] = null;
+
+    newBoard[from.row][from.col] = null;
     newBoard[targetRow][targetCol] = movingPiece;
-    
+
     if (movingPiece instanceof Rook || movingPiece instanceof King || movingPiece instanceof Pawn) {
       movingPiece.moved = true;
+    }
+
+    const isCastlingMove = movingPiece instanceof King && Math.abs(targetCol - from.col) === 2;
+
+    if (isCastlingMove) {
+      const row = from.row;
+
+      if (targetCol === 6) {
+        // King-side castling
+        const rookFrom = { row, col: 7 };
+        const rookTo = { row, col: 5 };
+        board[rookTo.row][rookTo.col] = board[rookFrom.row][rookFrom.col];
+        board[rookFrom.row][rookFrom.col] = null;
+
+        if (board[rookTo.row][rookTo.col]) {
+          board[rookTo.row][rookTo.col]!.moved = true;
+        }
+      } else if (targetCol === 2) {
+        // Queen-side castling
+        const rookFrom = { row, col: 0 };
+        const rookTo = { row, col: 3 };
+        board[rookTo.row][rookTo.col] = board[rookFrom.row][rookFrom.col];
+        board[rookFrom.row][rookFrom.col] = null;
+
+        if (board[rookTo.row][rookTo.col]) {
+          board[rookTo.row][rookTo.col]!.moved = true;
+        }
+      }
     }
 
     setLastMove({

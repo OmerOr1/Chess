@@ -11,7 +11,7 @@ function filterOutMoves(
   const validMoves: Location[] = [];
 
   for (const move of optionalMoves) {
-    // Clone the board deeply
+    // Clone the board
     const newBoard = board.map((row) => row.slice());
     const movingPiece = newBoard[from.row][from.col];
 
@@ -19,8 +19,29 @@ function filterOutMoves(
     newBoard[from.row][from.col] = null;
     newBoard[move.row][move.col] = movingPiece;
 
-    // If king is the moving piece, simulate king position change
+    // Determine new king position after the move
     const newKingPos = movingPiece instanceof King ? move : kingPosition;
+
+    // Check for castling move
+    const isCastlingMove =
+      movingPiece instanceof King &&
+      move.row === from.row &&
+      Math.abs(move.col - from.col) === 2;
+
+    // Additional castling validation
+    if (isCastlingMove) {
+      const step = move.col > from.col ? 1 : -1;
+      const colsToCheck = [
+        from.col + step,
+        from.col + 2 * step,
+      ];
+
+      const pathIsSafe = colsToCheck.every((col) =>
+        !isKingInCheck(newBoard, { row: from.row, col }, color)
+      );
+
+      if (!pathIsSafe) continue; // If any square in the path is under attack, skip
+    }
 
     // Check if the king is now in check
     const stillSafe = !isKingInCheck(newBoard, newKingPos, color);
