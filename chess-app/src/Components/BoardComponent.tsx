@@ -27,6 +27,7 @@ const BoardComponent: React.FC = () => {
   const [promotionSquare, setPromotionSquare] = useState<Location | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<SquareData | null>(null);
   const [isCheck, setIsCheck] = useState(false);
+  const [enPassantTarget, setEnPassantTarget] = useState<Location | null>(null);
 
   const toggleTurn = () => {
     setIsWhiteTurn((prev) => !prev);
@@ -42,7 +43,7 @@ const BoardComponent: React.FC = () => {
         const kingColor = getCurrentColor(isWhiteTurn);
         const kingPos = findKingPosition(board, kingColor);
         const optionalMoves = targetPiece.getValidMoves(board, {row: targetRow, col: targetCol});
-        const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos);
+        const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos, enPassantTarget);
 
         setSelectedSquare({
           location: { row: targetRow, col: targetCol },
@@ -78,7 +79,15 @@ const BoardComponent: React.FC = () => {
       const kingColor = getCurrentColor(isWhiteTurn);
       const kingPos = findKingPosition(board, kingColor);
       const optionalMoves = targetPiece.getValidMoves(board, {row: targetRow, col: targetCol});
-      const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos);
+      // Inject en passant manually
+      if (targetPiece instanceof Pawn &&
+        enPassantTarget &&
+        Math.abs(enPassantTarget.col - targetCol) === 1 &&
+        enPassantTarget.row === targetRow + (targetPiece.color === "White" ? -1 : 1)
+      ) {
+        optionalMoves.push({ row: enPassantTarget.row, col: enPassantTarget.col });
+      }
+      const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos, enPassantTarget);
 
       setSelectedSquare({
         location: { row: targetRow, col: targetCol },
@@ -99,8 +108,26 @@ const BoardComponent: React.FC = () => {
     const movingPiece = board[from.row][from.col];
     const newBoard = [...board];
 
+    // make the move
     newBoard[from.row][from.col] = null;
     newBoard[targetRow][targetCol] = movingPiece;
+
+    if (movingPiece instanceof Pawn &&
+      enPassantTarget &&
+      targetRow === enPassantTarget.row &&
+      targetCol === enPassantTarget.col &&
+      from.col !== targetCol // diagonal move
+    ) {
+      newBoard[from.row][targetCol] = null; // remove captured pawn
+    }
+
+    // update EnPassant
+    if (movingPiece instanceof Pawn && Math.abs(from.row - targetRow) === 2) {
+      const dir = movingPiece.color === "White" ? -1 : 1;
+      setEnPassantTarget({ row: from.row + dir, col: from.col });
+    } else {
+      setEnPassantTarget(null);
+    }
 
     if (movingPiece instanceof Rook || movingPiece instanceof King || movingPiece instanceof Pawn) {
       movingPiece.hasMoved = true;
@@ -157,7 +184,7 @@ const BoardComponent: React.FC = () => {
       else if(!check && isCheck){
         setIsCheck(false);
       }
-      if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor)){
+      if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)){
         if(check){
           console.log(`Checkmate! ${getCurrentColor(isWhiteTurn)} won.`);
         }
@@ -196,7 +223,7 @@ const BoardComponent: React.FC = () => {
     else if(!check && isCheck){
       setIsCheck(false);
     }
-    if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor)){
+    if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)){
       if(check){
         console.log(`Checkmate! ${isWhiteTurn ? "White" : "Black"} won.`);
       }
