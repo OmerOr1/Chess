@@ -11,6 +11,8 @@ interface SquareComponentProps {
   isSelected: boolean;
   isLastMove: boolean;
   validMoves: { row: number; col: number }[];
+  isKing: boolean;
+  isCheck: boolean
 }
 
 const SquareComponent: React.FC<SquareComponentProps> = ({ 
@@ -20,11 +22,13 @@ const SquareComponent: React.FC<SquareComponentProps> = ({
   onClick, 
   isSelected,
   isLastMove,
-  validMoves 
+  validMoves,
+  isKing,
+  isCheck
 }) => {
   const { row, col } = location;
 
-  const isLeftmostColumn = col === 0;
+  const isLeftColumn = col === 0;
   const isBottomRow = row === 7;
 
   const handleClick = () => {
@@ -36,13 +40,24 @@ const SquareComponent: React.FC<SquareComponentProps> = ({
 
   const capturable = isValidMove && piece;
   const reachable = isValidMove && !piece;
+  const isInDanger = isCheck && isKing;
+
+  const className = [
+    'square',
+    squareColor,
+    isSelected && 'selected',
+    capturable && 'capturable',
+    reachable && 'reachable',
+    isLastMove && 'lastMove',
+    isInDanger && 'inDanger',
+  ].filter(Boolean).join(' ');
 
   return (
     <div 
-      className={`square ${squareColor} ${isSelected ? 'selected' : ''} ${capturable ? 'capturable' : ''} ${reachable ? 'reachable' : ''}  ${isLastMove ? "lastMove" : ""}`} 
+      className={className}
       onClick={handleClick}
     >
-      {isLeftmostColumn && <span className="row-notation">{8 - row}</span>}
+      {isLeftColumn && <span className="row-notation">{8 - row}</span>}
       
       {piece && <PieceComponent type={piece.type} color={piece.color} />}
 

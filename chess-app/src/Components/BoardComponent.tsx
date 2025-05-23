@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Piece, Rook, Queen, Bishop, Knight, Pawn, King } from "../Pieces";
-import {filterOutMoves, isKingInCheck, opponentHasMoves, findKingPosition, getCurrentColor, getOppositeColor } from "../utils/boardHelpers";
+import {filterOutMoves, isKingInCheck, opponentHasMoves, findKingPosition, getCurrentColor, getOppositeColor, isSameLocation } from "../utils/boardHelpers";
 import { Location } from "../types";
 import { initialBoard } from "../boardData";
 import SquareComponent from "./SquareComponent";
@@ -27,6 +27,7 @@ const BoardComponent: React.FC = () => {
   const [promotionSquare, setPromotionSquare] = useState<Location | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<SquareData | null>(null);
   const [isCheck, setIsCheck] = useState(false);
+  const [enPassantTarget, setEnPassantTarget] = useState<Location | null>(null);
 
   const toggleTurn = () => {
     setIsWhiteTurn((prev) => !prev);
@@ -42,7 +43,7 @@ const BoardComponent: React.FC = () => {
         const kingColor = getCurrentColor(isWhiteTurn);
         const kingPos = findKingPosition(board, kingColor);
         const optionalMoves = targetPiece.getValidMoves(board, {row: targetRow, col: targetCol});
-        const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos);
+        const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos, enPassantTarget);
 
         setSelectedSquare({
           location: { row: targetRow, col: targetCol },
@@ -78,7 +79,15 @@ const BoardComponent: React.FC = () => {
       const kingColor = getCurrentColor(isWhiteTurn);
       const kingPos = findKingPosition(board, kingColor);
       const optionalMoves = targetPiece.getValidMoves(board, {row: targetRow, col: targetCol});
-      const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos);
+      // Inject en passant manually
+      if (targetPiece instanceof Pawn &&
+        enPassantTarget &&
+        Math.abs(enPassantTarget.col - targetCol) === 1 &&
+        enPassantTarget.row === targetRow + (targetPiece.color === "White" ? -1 : 1)
+      ) {
+        optionalMoves.push({ row: enPassantTarget.row, col: enPassantTarget.col });
+      }
+      const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos, enPassantTarget);
 
       setSelectedSquare({
         location: { row: targetRow, col: targetCol },
@@ -95,13 +104,61 @@ const BoardComponent: React.FC = () => {
       return;
     }
 
-    const movingPiece = board[selectedSquare!.location.row][selectedSquare!.location.col];
+    const from = {row: selectedSquare!.location.row, col: selectedSquare!.location.col}
+    const movingPiece = board[from.row][from.col];
     const newBoard = [...board];
-    newBoard[selectedSquare!.location.row][selectedSquare!.location.col] = null;
+
+    // make the move
+    newBoard[from.row][from.col] = null;
     newBoard[targetRow][targetCol] = movingPiece;
-    
+
+    if (movingPiece instanceof Pawn &&
+      enPassantTarget &&
+      targetRow === enPassantTarget.row &&
+      targetCol === enPassantTarget.col &&
+      from.col !== targetCol // diagonal move
+    ) {
+      newBoard[from.row][targetCol] = null; // remove captured pawn
+    }
+
+    // update EnPassant
+    if (movingPiece instanceof Pawn && Math.abs(from.row - targetRow) === 2) {
+      const dir = movingPiece.color === "White" ? -1 : 1;
+      setEnPassantTarget({ row: from.row + dir, col: from.col });
+    } else {
+      setEnPassantTarget(null);
+    }
+
     if (movingPiece instanceof Rook || movingPiece instanceof King || movingPiece instanceof Pawn) {
-      movingPiece.moved = true;
+      movingPiece.hasMoved = true;
+    }
+
+    const isCastlingMove = movingPiece instanceof King && Math.abs(targetCol - from.col) === 2;
+
+    if (isCastlingMove) {
+      const row = from.row;
+
+      if (targetCol === 6) {
+        // King-side castling
+        const rookFrom = { row, col: 7 };
+        const rookTo = { row, col: 5 };
+        board[rookTo.row][rookTo.col] = board[rookFrom.row][rookFrom.col];
+        board[rookFrom.row][rookFrom.col] = null;
+
+        if (board[rookTo.row][rookTo.col]) {
+          board[rookTo.row][rookTo.col]!.hasMoved = true;
+        }
+      } else if (targetCol === 2) {
+        // Queen-side castling
+        const rookFrom = { row, col: 0 };
+        const rookTo = { row, col: 3 };
+        board[rookTo.row][rookTo.col] = board[rookFrom.row][rookFrom.col];
+        board[rookFrom.row][rookFrom.col] = null;
+
+        if (board[rookTo.row][rookTo.col]) {
+          board[rookTo.row][rookTo.col]!.hasMoved = true;
+        }
+      }
     }
 
     setLastMove({
@@ -127,7 +184,7 @@ const BoardComponent: React.FC = () => {
       else if(!check && isCheck){
         setIsCheck(false);
       }
-      if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor)){
+      if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)){
         if(check){
           console.log(`Checkmate! ${getCurrentColor(isWhiteTurn)} won.`);
         }
@@ -166,7 +223,7 @@ const BoardComponent: React.FC = () => {
     else if(!check && isCheck){
       setIsCheck(false);
     }
-    if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor)){
+    if(!opponentHasMoves(newBoard, opponentKingPos, opponentColor, enPassantTarget)){
       if(check){
         console.log(`Checkmate! ${isWhiteTurn ? "White" : "Black"} won.`);
       }
@@ -209,6 +266,8 @@ const BoardComponent: React.FC = () => {
               isSelected={isSelected}
               isLastMove={isLastMove}
               validMoves={selectedSquare?.validMoves || []}
+              isKing={isSameLocation(findKingPosition(board, getCurrentColor(isWhiteTurn)), { row: rowIndex, col: colIndex })}
+              isCheck={isCheck}
             />
           );
         })
