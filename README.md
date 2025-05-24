@@ -11,7 +11,7 @@ This project is built with the following technologies:
 * HTML
 * CSS
 
-
+## See It in Action
 <img src="/chess-app/src/assets/demos/demo1.PNG" width="500"/>
 <img src="/chess-app/src/assets/demos/demo2.PNG" width="500"/>
 <img src="/chess-app/src/assets/demos/demo3.PNG" width="500"/>
