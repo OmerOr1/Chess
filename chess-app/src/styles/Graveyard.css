@@ -1,0 +1,27 @@
+.graveyard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 1vmin;
+  position: absolute;
+  left: -1vmin;
+}
+
+.graveyard-top {
+  top: -6vmin;
+}
+
+.graveyard-bottom {
+  bottom: -6vmin;
+}
+
+.graveyard-piece {
+  width: 4vmin;
+  height: auto;
+  object-fit: contain;
+}
+
+.graveyard-piece:hover {
+    transform: none;
+    transition: none;
+}

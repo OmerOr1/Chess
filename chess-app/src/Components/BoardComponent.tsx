@@ -6,6 +6,7 @@ import { getInitialBoard } from "../boardData";
 import SquareComponent from "./SquareComponent";
 import PromotionModal from "./PromotionModal";
 import GameOverModal from "./GameOverModal";
+import GraveyardComponent from "./GraveyardComponent";
 import "../styles/Board.css";
 
 type MoveDetails = {
@@ -26,6 +27,11 @@ type GameOverDetails = {
   method: "Checkmate" | "Time" | "Repetition" | "Stalemate" | "Insufficient Material";
 }
 
+type capturedPiecesData = {
+  White: Piece[],
+  Black: Piece[]
+}
+
 const BoardComponent: React.FC = () => {
   const [board, setBoard] = useState<(Piece | null)[][]>(getInitialBoard());
   const [isWhiteTurn, setIsWhiteTurn] = useState(true);
@@ -35,6 +41,8 @@ const BoardComponent: React.FC = () => {
   const [isCheck, setIsCheck] = useState(false);
   const [enPassantTarget, setEnPassantTarget] = useState<Location | null>(null);
   const [gameOver, setGameOver] = useState<GameOverDetails | null>(null);
+  const [capturedPieces, setCapturedPieces] = useState<capturedPiecesData>({ White: [], Black: [] });
+
   const toggleTurn = () => {
     setIsWhiteTurn((prev) => !prev);
   }
@@ -42,13 +50,13 @@ const BoardComponent: React.FC = () => {
   const handleSquareClick = (targetRow: number, targetCol: number) => {
     const targetPiece = board[targetRow][targetCol];
     
-    // promotion modal is currently showing
+    // we want to cancel the promotion move
     if (promotionSquare) {
-      // cancled promotion by clicking on another piece
+      // if cancled promotion by clicking on another piece, calculate valid moves for it
       if (targetPiece && targetPiece.color === (getCurrentColor(isWhiteTurn))) {
         const kingColor = getCurrentColor(isWhiteTurn);
         const kingPos = findKingPosition(board, kingColor);
-        const optionalMoves = targetPiece.getValidMoves(board, {row: targetRow, col: targetCol});
+        const optionalMoves = targetPiece!.getValidMoves(board, {row: targetRow, col: targetCol});
         const validMoves = filterOutMoves(optionalMoves, {row: targetRow, col: targetCol}, board, kingColor, kingPos, enPassantTarget);
 
         setSelectedSquare({
@@ -105,6 +113,7 @@ const BoardComponent: React.FC = () => {
     const isMoveValid = selectedSquare?.validMoves.some(
       (move) => move.row === targetRow && move.col === targetCol
     );
+    // if clicked on an empty square or an opponent's piece, remove selected square
     if (!isMoveValid) {
       setSelectedSquare(null);
       return;
@@ -114,9 +123,9 @@ const BoardComponent: React.FC = () => {
     const movingPiece = board[from.row][from.col];
     const newBoard = [...board];
 
-    // make the move
-    newBoard[from.row][from.col] = null;
-    newBoard[targetRow][targetCol] = movingPiece;
+    const promotionMove = 
+      movingPiece instanceof Pawn &&
+      (targetRow === 0 || targetRow === 7);
 
     if (movingPiece instanceof Pawn &&
       enPassantTarget &&
@@ -124,9 +133,31 @@ const BoardComponent: React.FC = () => {
       targetCol === enPassantTarget.col &&
       from.col !== targetCol // diagonal move
     ) {
+      const capturedPiece = newBoard[from.row][targetCol];
+      setCapturedPieces(prev => ({
+        ...prev,
+        [getOppositeColor(isWhiteTurn)]: [
+          ...prev[getOppositeColor(isWhiteTurn)],
+          capturedPiece,
+        ],
+      }));
       newBoard[from.row][targetCol] = null; // remove captured pawn
     }
+    else if (!promotionMove && newBoard[targetRow][targetCol]) {
+      const capturedPiece = newBoard[targetRow][targetCol];
+      setCapturedPieces(prev => ({
+        ...prev,
+        [getOppositeColor(isWhiteTurn)]: [
+          ...prev[getOppositeColor(isWhiteTurn)],
+          capturedPiece,
+        ],
+      }));
+    }
 
+    // make the move
+    newBoard[from.row][from.col] = null;
+    newBoard[targetRow][targetCol] = movingPiece;
+    
     // update EnPassant
     if (movingPiece instanceof Pawn && Math.abs(from.row - targetRow) === 2) {
       const dir = movingPiece.color === "White" ? -1 : 1;
@@ -209,6 +240,7 @@ const BoardComponent: React.FC = () => {
   }
 
   const handlePromotion = (pieceType: string) => {
+    //maybe get the captured piece as a parameter
     const color = getCurrentColor(isWhiteTurn);
     const newPiece =
       pieceType === "Queen"
@@ -221,6 +253,20 @@ const BoardComponent: React.FC = () => {
 
     const newBoard = [...board];
     const { row, col } = promotionSquare!;
+
+    // the piece that the pawn captured in promotion
+    const capturedPiece = lastMove!.capturedPiece;
+
+    if (capturedPiece){
+      setCapturedPieces(prev => ({
+        ...prev,
+        [getOppositeColor(isWhiteTurn)]: [
+          ...prev[getOppositeColor(isWhiteTurn)],
+          capturedPiece,
+        ],
+      }));
+    }
+
     newBoard[row][col] = newPiece;
 
     const opponentColor = isWhiteTurn ? "Black" : "White"; 
@@ -260,10 +306,16 @@ const BoardComponent: React.FC = () => {
     setIsCheck(false);
     setEnPassantTarget(null);
     setGameOver(null);
+    setCapturedPieces({ White: [], Black: [] });
   }
 
   return (
-    <>
+    <div className="board-container" style={{ position: "relative" }}>
+      <GraveyardComponent
+        capturedPieces={capturedPieces.White}
+        position="top"
+      />
+
       <div className="board">
         {promotionSquare && (
           <PromotionModal
@@ -299,13 +351,19 @@ const BoardComponent: React.FC = () => {
           })
         )}
       </div> 
+
+      <GraveyardComponent
+        capturedPieces={capturedPieces.Black}
+        position="bottom"
+      />
+      
       <GameOverModal
         winner={gameOver?.winner || null}
         method={gameOver?.method || null}
         onNewGame={handleNewGame}
         isVisible={!!gameOver}
       />
-    </>
+    </div>
   );
 }
 
