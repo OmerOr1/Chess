@@ -1,6 +1,6 @@
 # ♟️ Chess App
 
-<p>This is a simple yet functional chess app I've been building as a side project to sharpen my skills in game logic, React state management, and clean component design. The app supports standard chess rules, including special moves like <b>castling</b>, <b>en-passant</b>, and <b>pawn promotion</b>. While it's still a work in progress, it's been a great way to dive into board game mechanics and handle complex game state in a structured way.</p>
+<p>This is a simple yet functional chess app I've been building as a side project to sharpen my skills in game logic, React state management, and clean component design. The app supports standard chess rules, including special moves like <b>castling</b>, <b>en-passant</b>, and <b>pawn promotion</b>. It's been a great way to dive into board game mechanics and handle complex game state in a structured way.</p>
 
 
 ## Technologies Used
